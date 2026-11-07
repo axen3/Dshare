@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Send files directly between your devices over your local network. No servers, no uploads, fully peer-to-peer.">
+<title>LocalShare — Peer-to-Peer File Sharing</title>
+<style>
+  :root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #DBEAFE;
+    --accent: #06B6D4;
+    --accent-light: #CFFAFE;
+    --bg-start: #EFF6FF;
+    --bg-end: #ECFEFF;
+    --card: #FFFFFF;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --text-soft: #94A3B8;
+    --border: #E2E8F0;
+    --border-soft: #F1F5F9;
+    --success: #10B981;
+    --success-light: #D1FAE5;
+    --warning: #F59E0B;
+    --warning-light: #FEF3C7;
+    --danger: #EF4444;
+    --danger-light: #FEE2E2;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+    --shadow-lg: 0 4px 12px rgba(15,23,42,0.08), 0 20px 40px rgba(15,23,42,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(160deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 16px; padding-bottom: 80px; }
+
+  .app {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 4px;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.30);
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { width: 24px; height: 24px; }
+
+  .logo-text h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .logo-text .subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .status-badge {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--border-soft);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .status-badge .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-soft);
+  }
+
+  .status-badge.connecting { background: var(--warning-light); color: var(--warning); }
+  .status-badge.connecting .dot { background: var(--warning); animation: pulse 1.4s infinite; }
+  .status-badge.connected { background: var(--success-light); color: var(--success); }
+  .status-badge.connected .dot { background: var(--success); }
+  .status-badge.error { background: var(--danger-light); color: var(--danger); }
+  .status-badge.error .dot { background: var(--danger); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    padding: 5px;
+    border-radius: var(--radius-sm);
+    margin: 16px 0 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 11px 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .tab svg { width: 16px; height: 16px; }
+
+  .tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.30);
+  }
+
+  .tab:not(.active):hover { background: var(--border-soft); color: var(--text); }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .card .hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+
+  /* Steps */
+  .step {
+    position: relative;
+    padding-left: 36px;
+    margin-bottom: 22px;
+  }
+
+  .step:last-child { margin-bottom: 0; }
+
+  .step-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .step-num.done {
+    background: var(--success-light);
+    color: var(--success);
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-top: 3px;
+  }
+
+  /* Dropzone */
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 42px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    background: var(--border-soft);
+  }
+
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  .dropzone .dz-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    background: var(--card);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    box-shadow: var(--shadow);
+  }
+
+  .dropzone .dz-icon svg { width: 28px; height: 28px; }
+
+  .dropzone p { font-weight: 500; font-size: 14px; }
+  .dropzone .dz-sub { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+
+  /* File list */
+  .file-list {
+    list-style: none;
+    margin: 14px 0 0;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--border-soft);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+
+  .file-item:last-child { margin-bottom: 0; }
+  .file-item.done { background: var(--success-light); }
+
+  .file-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .file-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .file-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { background: rgba(15,23,42,0.06); color: var(--text); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  /* Progress */
+  .progress {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    width: 0%;
+    transition: width 0.2s ease;
+    border-radius: 2px;
+  }
+
+  .file-item.done .progress-bar { background: var(--success); }
+
+  /* Buttons */
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+
+  .btn svg { width: 16px; height: 16px; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.30);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.40);
+  }
+
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    background: var(--border-soft);
+    color: var(--text);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--border);
+  }
+
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Code area */
+  .code-block {
+    background: #0F172A;
+    color: #E2E8F0;
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    word-break: break-all;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .code-block::-webkit-scrollbar { width: 8px; }
+  .code-block::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  textarea.code-input {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    background: var(--border-soft);
+    word-break: break-all;
+    color: var(--text);
+    transition: border 0.15s;
+  }
+
+  textarea.code-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--card);
+  }
+
+  /* Toast */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+    width: calc(100% - 32px);
+    max-width: 460px;
+  }
+
+  .toast {
+    background: var(--text);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 11px;
+    box-shadow: var(--shadow-lg);
+    font-size: 13.5px;
+    font-weight: 500;
+    animation: toastIn 0.3s ease;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  .toast.info { background: var(--primary); }
+
+  @keyframes toastIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* About */
+  .about-section { margin-bottom: 18px; }
+  .about-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .about-section h3 .emoji { font-size: 16px; }
+  .about-section p {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .about-section ul {
+    margin: 8px 0 0 20px;
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+  .about-section li { margin-bottom: 4px; }
+  .about-section code {
+    background: var(--border-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 12px;
+    color: var(--primary);
+  }
+
+  .info-banner {
+    background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .info-banner .ib-icon { flex-shrink: 0; font-size: 18px; line-height: 1.2; }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-soft);
+    font-size: 13px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Spinner */
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { padding: 10px; padding-bottom: 80px; }
+    .card { padding: 18px; }
+    .dropzone { padding: 32px 16px; }
+    .logo-text h1 { font-size: 18px; }
+    .logo-text .subtitle { font-size: 11px; }
+    .logo-icon { width: 38px; height: 38px; }
+    .tab { font-size: 13px; padding: 10px 4px; }
+    .tab span.label { display: none; }
+    .status-badge { padding: 6px 10px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>LocalShare</h1>
+        <div class="subtitle">Peer-to-peer file transfer</div>
+      </div>
+    </div>
+    <div id="status-badge" class="status-badge">
+      <span class="dot"></span><span id="status-text">Idle</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      <span class="label">Send</span>
+    </button>
+    <button class="tab" data-tab="receive">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 9l-7 7-7-7"/><path d="M12 16V3"/></svg>
+      <span class="label">Receive</span>
+    </button>
+    <button class="tab" data-tab="about">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span class="label">About</span>
+    </button>
+  </nav>
+
+  <!-- SEND PANEL -->
+  <section id="panel-send" class="panel">
+    <div class="card">
+      <h2>Send files to another device</h2>
+      <p class="hint">Pick your files, then exchange two short codes with the receiving device to establish a direct, encrypted connection.</p>
+
+      <div class="info-banner">
+        <div class="ib-icon">💡</div>
+        <div>Files travel <strong>directly between devices</strong> — never through any server. Works best when both devices are on the same Wi-Fi network.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="send-step1-num">1</div>
+        <div class="step-title">Select files</div>
+        <div class="dropzone" id="dropzone">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          </div>
+          <p>Drop files here or click to browse</p>
+          <div class="dz-sub">Any file type • No size limit</div>
+          <input type="file" id="file-input" multiple style="display:none">
+        </div>
+        <ul class="file-list" id="send-file-list"></ul>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="send-step2-num">2</div>
+        <div class="step-title">Generate your connection code</div>
+        <button class="btn btn-primary btn-block" id="generate-offer-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Generate connection code
+        </button>
+        <div id="offer-display" class="hidden" style="margin-top:14px">
+          <div class="code-block" id="offer-code"></div>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-sm" id="copy-offer-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy code
+            </button>
+            <button class="btn btn-secondary btn-sm" id="regenerate-offer-btn">Regenerate</button>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:10px">Send this code to the receiving device (via chat, email, etc.). They'll paste it in the Receive tab and send back a code.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="send-step3-num">3</div>
+        <div class="step-title">Paste the receiver's answer</div>
+        <textarea class="code-input" id="answer-input" placeholder="Paste the answer code from the receiving device here..."></textarea>
+        <button class="btn btn-primary btn-block" id="connect-btn" style="margin-top:12px" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007 0l4-4a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-4 4a5 5 0 007 7l1-1"/></svg>
+          Connect & start sending
+        </button>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="send-step4-num">4</div>
+        <div class="step-title">Transfer</div>
+        <div id="transfer-area" class="hidden">
+          <ul class="file-list" id="transfer-list"></ul>
+        </div>
+        <div id="transfer-empty" class="empty-state">Files will appear here once connected.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECEIVE PANEL -->
+  <section id="panel-receive" class="panel hidden">
+    <div class="card">
+      <h2>Receive files</h2>
+      <p class="hint">Paste the sender's connection code, then send back your answer code to establish the link.</p>
+
+      <div class="step">
+        <div class="step-num" id="recv-step1-num">1</div>
+        <div class="step-title">Paste sender's connection code</div>
+        <textarea class="code-input" id="offer-input" placeholder="Paste the connection code shared by the sender..."></textarea>
+        <button class="btn btn-primary btn-block" id="accept-btn" style="margin-top:12px" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Accept & generate answer
+        </button>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="recv-step2-num">2</div>
+        <div class="step-title">Send back your answer code</div>
+        <div id="answer-display" class="hidden">
+          <div class="code-block" id="answer-code"></div>
+          <button class="btn btn-secondary btn-sm" id="copy-answer-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy answer code
+          </button>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:10px">Send this code back to the sender. They'll paste it in step 3 of the Send tab to connect.</p>
+        </div>
+        <div id="answer-empty" class="empty-state">Your answer code will appear here.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" id="recv-step3-num">3</div>
+        <div class="step-title">Receive files</div>
+        <div id="incoming-empty" class="empty-state">Waiting for the sender to connect and start the transfer…</div>
+        <ul class="file-list" id="incoming-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT PANEL -->
+  <section id="panel-about" class="panel hidden">
+    <div class="card">
+      <h2>About LocalShare</h2>
+      <p class="hint">A self-hosted LocalSend-style file sharer you can deploy to Cloudflare Pages.</p>
+
+      <div class="about-section">
+        <h3><span class="emoji">🔒</span> How it works</h3>
+        <p>LocalShare uses <strong>WebRTC</strong> to create a direct, encrypted peer-to-peer connection between your devices. Files never touch a server — they flow straight from one device to the other over your local network (or even across the internet, when network conditions allow).</p>
+        <p>Because the app is static (just HTML/CSS/JS), there's no signaling server to relay connections. Instead, you exchange two short codes with the other device — once via copy-paste through any chat app, email, or even by reading them aloud.</p>
+      </div>
+
+      <div class="about-section">
+        <h3><span class="emoji">📱</span> Typical usage</h3>
+        <ul>
+          <li>Open this page on the sending device, pick files, generate a code.</li>
+          <li>Open this page on the receiving device, paste the code, copy the answer.</li>
+          <li>Send the answer back to the sender, paste it, connect — files transfer.</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3><span class="emoji">🚧</span> Limitations</h3>
+        <ul>
+          <li>The two-code handshake is needed because static hosting can't run a signaling server.</li>
+          <li>Very large files (multi-GB) may hit browser memory limits on the receiving side.</li>
+          <li>If both devices are behind strict NATs on different networks, the connection may fail — same Wi-Fi is the most reliable setup.</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3><span class="emoji">☁️</span> Deploying to Cloudflare Pages</h3>
+        <p>This whole app is a single HTML file. To deploy:</p>
+        <ul>
+          <li>Sign in to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">Cloudflare Dashboard</a> → Workers &amp; Pages → Create → Pages → Upload assets.</li>
+          <li>Drag the <code>index.html</code> file into the uploader (or upload the whole folder if you added a README).</li>
+          <li>Set a project name, click <code>Deploy site</code>. Your app is live on <code>&lt;name&gt;.pages.dev</code>.</li>
+          <li>Or via CLI: <code>npx wrangler pages deploy .</code> from the folder containing the HTML.</li>
+        </ul>
+        <p>The app needs no build step, no environment variables, and no backend.</p>
+      </div>
+
+      <div class="about-section">
+        <h3><span class="emoji">⚖️</span> Why not the real LocalSend protocol?</h3>
+        <p>The original LocalSend uses HTTP/mDNS for device discovery. Browsers can't do mDNS, and a page hosted on HTTPS (as Cloudflare Pages forces) can't make HTTP requests to private IPs (mixed content). So a literal LocalSend protocol clone wouldn't work from a static site. WebRTC gives the same end result — direct device-to-device transfer — and works in any modern browser.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ----- State -----
+  const state = {
+    pc: null,
+    dc: null,
+    role: null,            // 'sender' | 'receiver'
+    selectedFiles: [],     // [{file, id}]
+    receiveBuffers: {},    // {id: {name, size, mime, chunks:[], received:0, el}}
+    currentReceiveId: null,
+    connected: false,
+  };
+
+  const CHUNK_SIZE = 64 * 1024;          // 64 KiB
+  const BUFFER_HIGH_WATER = 4 * 1024 * 1024; // 4 MiB backpressure threshold
+  const ICE_TIMEOUT = 5000;
+
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ];
+
+  // ----- DOM helpers -----
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    statusBadge: $('status-badge'),
+    statusText: $('status-text'),
+    // send
+    dropzone: $('dropzone'),
+    fileInput: $('file-input'),
+    sendFileList: $('send-file-list'),
+    generateOfferBtn: $('generate-offer-btn'),
+    offerDisplay: $('offer-display'),
+    offerCode: $('offer-code'),
+    copyOfferBtn: $('copy-offer-btn'),
+    regenerateOfferBtn: $('regenerate-offer-btn'),
+    answerInput: $('answer-input'),
+    connectBtn: $('connect-btn'),
+    transferArea: $('transfer-area'),
+    transferEmpty: $('transfer-empty'),
+    transferList: $('transfer-list'),
+    // receive
+    offerInput: $('offer-input'),
+    acceptBtn: $('accept-btn'),
+    answerDisplay: $('answer-display'),
+    answerCode: $('answer-code'),
+    copyAnswerBtn: $('copy-answer-btn'),
+    answerEmpty: $('answer-empty'),
+    incomingEmpty: $('incoming-empty'),
+    incomingList: $('incoming-list'),
+  };
+
+  // ----- Tabs -----
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      tab.classList.add('active');
+      $('panel-' + tab.dataset.tab).classList.remove('hidden');
+    });
+  });
+
+  // ----- Toast -----
+  function toast(message, type = 'info', duration = 3000) {
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = message;
+    $('toast-container').appendChild(el);
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.3s, transform 0.3s';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+      setTimeout(() => el.remove(), 300);
+    }, duration);
+  }
+
+  // ----- Status -----
+  function setStatus(label, kind) {
+    els.statusText.textContent = label;
+    els.statusBadge.className = 'status-badge' + (kind ? ' ' + kind : '');
+  }
+
+  // ----- Utilities -----
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), units.length - 1);
+    return (bytes / Math.pow(k, i)).toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function fileEmoji(file) {
+    const t = (file.type || '').toLowerCase();
+    const n = (file.name || '').toLowerCase();
+    if (t.startsWith('image/')) return '🖼️';
+    if (t.startsWith('video/')) return '🎬';
+    if (t.startsWith('audio/')) return '🎵';
+    if (t.includes('pdf')) return '📕';
+    if (/\.(zip|rar|7z|tar|gz)$/.test(n)) return '📦';
+    if (/\.(doc|docx|txt|md|rtf)$/.test(n)) return '📄';
+    if (/\.(xls|xlsx|csv)$/.test(n)) return '📊';
+    if (/\.(ppt|pptx)$/.test(n)) return '📽️';
+    if (/\.(js|ts|py|html|css|json|java|cpp|c|go|rs|sh)$/.test(n)) return '💻';
+    return '📁';
+  }
+
+  function encodeSDP(desc) {
+    // Compress slightly by removing redundant whitespace, then base64.
+    const compact = desc.sdp.split('\r\n').map(l => l.trim()).filter(Boolean).join('\r\n');
+    return btoa(JSON.stringify({ type: desc.type, sdp: compact }));
+  }
+
+  function decodeSDP(code) {
+    const trimmed = code.trim().replace(/\s+/g, '');
+    const json = atob(trimmed);
+    const obj = JSON.parse(json);
+    if (!obj.type || !obj.sdp) throw new Error('Invalid code');
+    return new RTCSessionDescription({ type: obj.type, sdp: obj.sdp });
+  }
+
+  function waitUntilIceComplete(pc) {
+    return new Promise((resolve) => {
+      if (pc.iceGatheringState === 'complete') return resolve();
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        pc.removeEventListener('icegatheringstatechange', check);
+        resolve();
+      };
+      const check = () => { if (pc.iceGatheringState === 'complete') finish(); };
+      pc.addEventListener('icegatheringstatechange', check);
+      setTimeout(finish, ICE_TIMEOUT);
+    });
+  }
+
+  // ----- File selection UI -----
+  function renderSelectedFiles() {
+    els.sendFileList.innerHTML = '';
+    state.selectedFiles.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.className = 'file-item';
+      li.dataset.idx = idx;
+      li.innerHTML = `
+        <div class="file-icon">${fileEmoji(item.file)}</div>
+        <div class="file-info">
+          <div class="file-name">${escapeHtml(item.file.name)}</div>
+          <div class="file-meta">${formatBytes(item.file.size)}</div>
+          <div class="progress"><div class="progress-bar" style="width:0%"></div></div>
+        </div>
+        <div class="file-actions">
+          <button class="icon-btn remove-btn" title="Remove">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`;
+      li.querySelector('.remove-btn').addEventListener('click', () => {
+        state.selectedFiles.splice(idx, 1);
+        renderSelectedFiles();
+      });
+      els.sendFileList.appendChild(li);
+    });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function addFiles(fileList) {
+    for (const file of fileList) {
+      state.selectedFiles.push({ file, id: uid() });
+    }
+    renderSelectedFiles();
+  }
+
+  // ----- Dropzone events -----
+  els.dropzone.addEventListener('click', () => els.fileInput.click());
+  els.fileInput.addEventListener('change', (e) => {
+    addFiles(e.target.files);
+    e.target.value = '';
+  });
+  ['dragenter', 'dragover'].forEach(ev => {
+    els.dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      els.dropzone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    els.dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      els.dropzone.classList.remove('dragover');
+    });
+  });
+  els.dropzone.addEventListener('drop', (e) => {
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      addFiles(e.dataTransfer.files);
+    }
+  });
+
+  // ----- Clipboard -----
+  async function copyText(text, btnLabel) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('Copied to clipboard', 'success', 1800);
+    } catch {
+      // Fallback: select the code block
+      const range = document.createRange();
+      const sel = window.getSelection();
+      toast('Copy failed — select the text manually', 'error');
+    }
+  }
+
+  // ----- Sender: generate offer -----
+  els.generateOfferBtn.addEventListener('click', async () => {
+    if (state.selectedFiles.length === 0) {
+      toast('Add at least one file first', 'error');
+      return;
+    }
+    if (state.pc) cleanupConnection();
+    state.role = 'sender';
+    setStatus('Generating code…', 'connecting');
+    els.generateOfferBtn.disabled = true;
+    els.generateOfferBtn.innerHTML = '<span class="spinner"></span> Generating…';
+
+    try {
+      state.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      state.dc = state.pc.createDataChannel('files', { ordered: true });
+      state.dc.binaryType = 'arraybuffer';
+      setupDataChannel(state.dc);
+
+      const offer = await state.pc.createOffer();
+      await state.pc.setLocalDescription(offer);
+      await waitUntilIceComplete(state.pc);
+
+      const code = encodeSDP(state.pc.localDescription);
+      els.offerCode.textContent = code;
+      els.offerDisplay.classList.remove('hidden');
+      $('send-step1-num').classList.add('done');
+      $('send-step2-num').classList.add('done');
+      setStatus('Awaiting answer', 'connecting');
+      toast('Connection code ready', 'success');
+    } catch (err) {
+      console.error(err);
+      toast('Failed to generate code: ' + err.message, 'error');
+      setStatus('Error', 'error');
+    } finally {
+      els.generateOfferBtn.disabled = false;
+      els.generateOfferBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Generate connection code';
+    }
+  });
+
+  els.regenerateOfferBtn.addEventListener('click', () => {
+    els.offerDisplay.classList.add('hidden');
+    els.answerInput.value = '';
+    els.connectBtn.disabled = true;
+    cleanupConnection();
+    els.generateOfferBtn.click();
+  });
+
+  els.copyOfferBtn.addEventListener('click', () => copyText(els.offerCode.textContent));
+
+  // ----- Sender: connect with answer -----
+  els.answerInput.addEventListener('input', () => {
+    els.connectBtn.disabled = els.answerInput.value.trim().length < 20;
+  });
+
+  els.connectBtn.addEventListener('click', async () => {
+    if (!state.pc || state.role !== 'sender') {
+      toast('Generate your connection code first', 'error');
+      return;
+    }
+    els.connectBtn.disabled = true;
+    els.connectBtn.innerHTML = '<span class="spinner"></span> Connecting…';
+    try {
+      const answer = decodeSDP(els.answerInput.value);
+      await state.pc.setRemoteDescription(answer);
+      setStatus('Connecting…', 'connecting');
+    } catch (err) {
+      toast('Invalid answer code: ' + err.message, 'error');
+      els.connectBtn.disabled = false;
+      els.connectBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007 0l4-4a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-4 4a5 5 0 007 7l1-1"/></svg> Connect & start sending';
+    }
+  });
+
+  // ----- Receiver: accept offer -----
+  els.offerInput.addEventListener('input', () => {
+    els.acceptBtn.disabled = els.offerInput.value.trim().length < 20;
+  });
+
+  els.acceptBtn.addEventListener('click', async () => {
+    if (state.pc) cleanupConnection();
+    state.role = 'receiver';
+    els.acceptBtn.disabled = true;
+    els.acceptBtn.innerHTML = '<span class="spinner"></span> Generating…';
+    setStatus('Generating answer…', 'connecting');
+
+    try {
+      const offer = decodeSDP(els.offerInput.value);
+      state.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      state.pc.ondatachannel = (e) => {
+        state.dc = e.channel;
+        state.dc.binaryType = 'arraybuffer';
+        setupDataChannel(state.dc);
+      };
+
+      await state.pc.setRemoteDescription(offer);
+      const answer = await state.pc.createAnswer();
+      await state.pc.setLocalDescription(answer);
+      await waitUntilIceComplete(state.pc);
+
+      const code = encodeSDP(state.pc.localDescription);
+      els.answerCode.textContent = code;
+      els.answerDisplay.classList.remove('hidden');
+      els.answerEmpty.classList.add('hidden');
+      $('recv-step1-num').classList.add('done');
+      $('recv-step2-num').classList.add('done');
+      setStatus('Awaiting sender', 'connecting');
+      toast('Answer code ready — send it back to the sender', 'success');
+    } catch (err) {
+      console.error(err);
+      toast('Invalid connection code: ' + err.message, 'error');
+      setStatus('Error', 'error');
+    } finally {
+      els.acceptBtn.disabled = false;
+      els.acceptBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Accept & generate answer';
+    }
+  });
+
+  els.copyAnswerBtn.addEventListener('click', () => copyText(els.answerCode.textContent));
+
+  // ----- DataChannel -----
+  function setupDataChannel(dc) {
+    dc.onopen = () => {
+      state.connected = true;
+      setStatus('Connected', 'connected');
+      $('send-step3-num').classList.add('done');
+      $('recv-step2-num').classList.add('done');
+      toast('Connected! Transfer starting.', 'success');
+      if (state.role === 'sender') {
+        els.transferArea.classList.remove('hidden');
+        els.transferEmpty.classList.add('hidden');
+        renderTransferList();
+        startSendingFiles();
+      } else {
+        els.incomingEmpty.textContent = 'Connected. Waiting for files…';
+      }
+    };
+    dc.onclose = () => {
+      state.connected = false;
+      setStatus('Disconnected', '');
+      toast('Connection closed', 'info');
+    };
+    dc.onerror = (e) => {
+      console.error('DataChannel error', e);
+      toast('Transfer error', 'error');
+    };
+    dc.onmessage = handleMessage;
+  }
+
+  // ----- Sender: stream files -----
+  async function startSendingFiles() {
+    if (!state.dc || state.dc.readyState !== 'open') return;
+    try {
+      for (const item of state.selectedFiles) {
+        await sendOneFile(item);
+      }
+      state.dc.send(JSON.stringify({ type: 'all-done' }));
+      toast('All files sent!', 'success');
+      $('send-step4-num').classList.add('done');
+    } catch (err) {
+      console.error(err);
+      toast('Transfer failed: ' + err.message, 'error');
+    }
+  }
+
+  async function sendOneFile(item) {
+    const meta = {
+      type: 'meta',
+      id: item.id,
+      name: item.file.name,
+      size: item.file.size,
+      mime: item.file.type || 'application/octet-stream',
+    };
+    state.dc.send(JSON.stringify(meta));
+
+    const stream = item.file.stream();
+    const reader = stream.getReader();
+    let sent = 0;
+
+    while (true) {
+      // Backpressure
+      while (state.dc.bufferedAmount > BUFFER_HIGH_WATER) {
+        await new Promise(r => setTimeout(r, 10));
+      }
+      const { done, value } = await reader.read();
+      if (done) break;
+      state.dc.send(value);
+      sent += value.byteLength;
+      updateTransferProgress(item.id, sent, item.file.size);
+    }
+
+    state.dc.send(JSON.stringify({ type: 'end', id: item.id }));
+    markTransferDone(item.id);
+  }
+
+  function renderTransferList() {
+    els.transferList.innerHTML = '';
+    state.selectedFiles.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'file-item';
+      li.dataset.id = item.id;
+      li.innerHTML = `
+        <div class="file-icon">${fileEmoji(item.file)}</div>
+        <div class="file-info">
+          <div class="file-name">${escapeHtml(item.file.name)}</div>
+          <div class="file-meta"><span class="t-progress">0 / ${formatBytes(item.file.size)}</span></div>
+          <div class="progress"><div class="progress-bar" style="width:0%"></div></div>
+        </div>`;
+      els.transferList.appendChild(li);
+    });
+  }
+
+  function updateTransferProgress(id, sent, total) {
+    const li = els.transferList.querySelector(`[data-id="${id}"]`);
+    if (!li) return;
+    const pct = total > 0 ? (sent / total * 100) : 100;
+    li.querySelector('.progress-bar').style.width = pct.toFixed(1) + '%';
+    li.querySelector('.t-progress').textContent = `${formatBytes(sent)} / ${formatBytes(total)}`;
+  }
+
+  function markTransferDone(id) {
+    const li = els.transferList.querySelector(`[data-id="${id}"]`);
+    if (li) li.classList.add('done');
+  }
+
+  // ----- Receiver: handle incoming -----
+  function handleMessage(event) {
+    if (typeof event.data === 'string') {
+      let msg;
+      try { msg = JSON.parse(event.data); } catch { return; }
+      if (msg.type === 'meta') {
+        state.receiveBuffers[msg.id] = {
+          name: msg.name,
+          size: msg.size,
+          mime: msg.mime,
+          chunks: [],
+          received: 0,
+          url: null,
+        };
+        state.currentReceiveId = msg.id;
+        addIncomingEntry(msg);
+      } else if (msg.type === 'end') {
+        finalizeIncomingFile(msg.id);
+        state.currentReceiveId = null;
+      } else if (msg.type === 'all-done') {
+        toast('All files received!', 'success');
+        $('recv-step3-num').classList.add('done');
+      }
+    } else if (event.data instanceof ArrayBuffer) {
+      const cur = state.receiveBuffers[state.currentReceiveId];
+      if (!cur) return;
+      cur.chunks.push(event.data);
+      cur.received += event.data.byteLength;
+      updateIncomingProgress(state.currentReceiveId);
+    }
+  }
+
+  function addIncomingEntry(meta) {
+    els.incomingEmpty.classList.add('hidden');
+    const li = document.createElement('li');
+    li.className = 'file-item';
+    li.dataset.id = meta.id;
+    li.innerHTML = `
+      <div class="file-icon">${fileEmoji({ name: meta.name, type: meta.mime })}</div>
+      <div class="file-info">
+        <div class="file-name">${escapeHtml(meta.name)}</div>
+        <div class="file-meta"><span class="t-progress">0 / ${formatBytes(meta.size)}</span></div>
+        <div class="progress"><div class="progress-bar" style="width:0%"></div></div>
+      </div>`;
+    els.incomingList.appendChild(li);
+  }
+
+  function updateIncomingProgress(id) {
+    const cur = state.receiveBuffers[id];
+    if (!cur) return;
+    const li = els.incomingList.querySelector(`[data-id="${id}"]`);
+    if (!li) return;
+    const pct = cur.size > 0 ? (cur.received / cur.size * 100) : 100;
+    li.querySelector('.progress-bar').style.width = pct.toFixed(1) + '%';
+    li.querySelector('.t-progress').textContent = `${formatBytes(cur.received)} / ${formatBytes(cur.size)}`;
+  }
+
+  function finalizeIncomingFile(id) {
+    const cur = state.receiveBuffers[id];
+    if (!cur) return;
+    const blob = new Blob(cur.chunks, { type: cur.mime });
+    cur.url = URL.createObjectURL(blob);
+    cur.chunks = []; // free memory
+    const li = els.incomingList.querySelector(`[data-id="${id}"]`);
+    if (li) {
+      li.classList.add('done');
+      const actions = document.createElement('div');
+      actions.className = 'file-actions';
+      const a = document.createElement('a');
+      a.className = 'btn btn-secondary btn-sm';
+      a.href = cur.url;
+      a.download = cur.name;
+      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Save';
+      actions.appendChild(a);
+      li.appendChild(actions);
+    }
+    toast(`Received: ${cur.name}`, 'success');
+  }
+
+  // ----- Cleanup -----
+  function cleanupConnection() {
+    if (state.dc) { try { state.dc.close(); } catch {} state.dc = null; }
+    if (state.pc) { try { state.pc.close(); } catch {} state.pc = null; }
+    state.connected = false;
+    state.currentReceiveId = null;
+    // Revoke object URLs
+    Object.values(state.receiveBuffers).forEach(r => { if (r && r.url) URL.revokeObjectURL(r.url); });
+    state.receiveBuffers = {};
+  }
+
+  // ----- Init -----
+  setStatus('Idle', '');
+  // Reset step indicators visually if needed (no-op on first load)
+  console.log('LocalShare initialized. ICE servers:', ICE_SERVERS.map(s => s.urls).join(', '));
+})();
+</script>
+</body>
+</html>
