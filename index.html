@@ -6,73 +6,96 @@
 <title>DShare – send files device to device</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef2f6;--card:#fff;--ink:#101828;--mute:#667085;--line:#d8dfe8;--acc:#4b3df2;--accink:#fff;--warn:#fff4d6;--ok:#12a36b;--bad:#d92d20}
-@media(prefers-color-scheme:dark){:root{--bg:#0c111b;--card:#151c2a;--ink:#eef2f8;--mute:#8d99ae;--line:#26314a;--acc:#8b80ff;--accink:#0c111b;--warn:#3a2f10;--ok:#3ddc97;--bad:#ff7a70}}
+:root{--bg:#f4f6fb;--glass:rgba(255,255,255,.72);--ink:#0f1630;--mute:#6b7494;--line:rgba(15,22,48,.09);--acc:#5b5bf7;--acc2:#22c1c3;--grad:linear-gradient(135deg,var(--acc),var(--acc2));--ok:#16a870;--tile:#0f1630;--tileink:#fff;--shadow:0 10px 40px rgba(40,50,120,.10);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#090c1a;--glass:rgba(24,29,54,.66);--ink:#eef1ff;--mute:#8f98bd;--line:rgba(255,255,255,.09);--acc:#7c7cff;--acc2:#2ad4d6;--ok:#3ddc97;--tile:#eef1ff;--tileink:#090c1a;--shadow:0 10px 40px rgba(0,0,0,.35);color-scheme:dark}}
 *{box-sizing:border-box}
-html{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Space Grotesk",system-ui,sans-serif}
-main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
-header{display:flex;align-items:baseline;gap:12px;margin:8px 0 22px}
-h1{margin:0;font-size:34px;letter-spacing:-.04em}
-header p{margin:0;color:var(--mute)}
-section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
-h2{margin:0 0 4px;font-size:18px}
-.sub{color:var(--mute);margin:0 0 14px;font-size:14px}
-.code{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.code span{width:52px;height:64px;display:grid;place-items:center;font-size:32px;font-weight:700;background:var(--ink);color:var(--bg);border-radius:10px}
+html{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.5 "Plus Jakarta Sans",system-ui,sans-serif;background:radial-gradient(60vw 40vw at 10% -10%,color-mix(in srgb,var(--acc) 28%,transparent),transparent),radial-gradient(50vw 40vw at 100% 0,color-mix(in srgb,var(--acc2) 22%,transparent),transparent),var(--bg);background-attachment:fixed}
+main{max-width:880px;margin:0 auto;padding:22px 16px 56px}
+nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.03em}
+.logo i{width:34px;height:34px;border-radius:11px;background:var(--grad);display:grid;place-items:center;color:#fff;font-style:normal;font-size:17px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:99px;background:var(--glass);border:1px solid var(--line);font-size:13px;color:var(--mute);backdrop-filter:blur(14px)}
+.pill b{color:var(--ink);font-weight:600}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.pill.on::before{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.card+.card,.grid+.card{margin-top:16px}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.1;letter-spacing:-.04em;margin:0 0 8px;font-weight:800}
+h2{font-size:16px;margin:0 0 4px;font-weight:600}
+.sub{color:var(--mute);margin:0 0 16px}
+.code{display:flex;gap:8px;margin:14px 0}
+.code span{flex:1;max-width:58px;aspect-ratio:.85;display:grid;place-items:center;font-size:clamp(22px,5vw,30px);font-weight:800;background:var(--tile);color:var(--tileink);border-radius:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input[type=text]{flex:1;min-width:140px;font:inherit;font-size:20px;letter-spacing:.2em;text-transform:uppercase;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:transparent;color:var(--ink)}
-input:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-button{font:inherit;font-weight:500;padding:10px 18px;border-radius:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
-button.p{background:var(--acc);border-color:var(--acc);color:var(--accink)}
-button.s{padding:6px 12px;font-size:14px}
-#qr{background:#fff;padding:8px;border-radius:10px;width:fit-content;margin-top:8px}
+.me{display:flex;gap:14px;align-items:center;justify-content:space-between}
+#qr{background:#fff;padding:7px;border-radius:14px;line-height:0}
 #qr:empty{display:none}
-.peer{border:2px dashed var(--line);border-radius:14px;padding:14px;margin-top:10px;transition:.15s}
-.peer.drag{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
-.peer b{font-size:17px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok);margin-right:8px}
-.tx{border-top:1px solid var(--line);padding:12px 0}
-.tx:first-child{border-top:0}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 4px}
-.bar i{display:block;height:100%;width:0;background:var(--acc)}
+input[type=text]{flex:1;min-width:0;font:inherit;font-size:20px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;padding:13px 16px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--ink) 5%,transparent);color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 60%,transparent);outline-offset:2px}
+button{font:inherit;font-weight:600;padding:12px 20px;border-radius:16px;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink);cursor:pointer;transition:transform .12s}
+button:active{transform:scale(.97)}
+button.p{background:var(--grad);border:0;color:#fff}
+button.s{padding:8px 14px;font-size:13px;border-radius:12px}
+.peer{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;border:1.5px dashed var(--line);margin-top:12px;transition:.15s;cursor:pointer}
+.peer:hover,.peer.drag{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 9%,transparent)}
+.av{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;flex:none}
+.peer .t{flex:1;min-width:0}.peer b{display:block}
 .meta{font-size:13px;color:var(--mute)}
-.offer{background:var(--warn);border-radius:12px;padding:10px 12px;margin-top:8px}
-.empty{color:var(--mute);font-size:14px;margin:6px 0 0}
-.st{font-size:13px;color:var(--mute);margin-top:8px}
-a{color:var(--acc)}
+.empty{display:grid;place-items:center;text-align:center;color:var(--mute);padding:26px 10px;border:1.5px dashed var(--line);border-radius:20px;margin-top:12px}
+.empty em{font-style:normal;font-size:30px}
+.tx{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.tx:first-child{border-top:0}
+.ico{width:42px;height:42px;border-radius:13px;background:color-mix(in srgb,var(--acc) 14%,transparent);display:grid;place-items:center;flex:none;font-size:18px}
+.tx .t{flex:1;min-width:0}
+.tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:7px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:3px;transition:width .15s}
+.tx.done .bar{display:none}
+a.save{color:#fff;background:var(--grad);padding:8px 14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:13px;white-space:nowrap}
+.foot{text-align:center;color:var(--mute);font-size:13px;margin-top:26px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main>
-<header><h1>DShare</h1><p>Send files straight between devices. Nothing is uploaded to a server.</p></header>
+<nav>
+  <div class="logo"><i>⇄</i>DShare</div>
+  <div class="pill" id="pill"><span id="status">Connecting…</span></div>
+</nav>
 
-<section>
-  <h2>This device: <span id="name">…</span></h2>
-  <p class="sub">Open DShare on the other device and enter this code, or scan the QR code.</p>
-  <div class="code" id="code" aria-label="Your device code"></div>
-  <div class="row"><button class="s" id="copy">Copy link</button><button class="s" id="newcode">New code</button></div>
-  <div id="qr"></div>
-  <div class="st" id="status">Connecting to the signaling server…</div>
-</section>
+<div class="grid">
+  <section class="card">
+    <h1>Send files, straight to any device.</h1>
+    <p class="sub">Private and direct. Files never touch a server.</p>
+    <h2>Connect to a device</h2>
+    <div class="row"><input type="text" id="join" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="Device code"><button class="p" id="go">Connect</button></div>
+  </section>
 
-<section>
-  <h2>Connect to a device</h2>
-  <p class="sub">Type the 6-character code shown on the other device.</p>
-  <div class="row"><input type="text" id="join" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="Device code"><button class="p" id="go">Connect</button></div>
-</section>
+  <section class="card">
+    <div class="me">
+      <div><h2 id="name">…</h2><p class="meta" style="margin:0">Your device code</p></div>
+      <div id="qr"></div>
+    </div>
+    <div class="code" id="code" aria-label="Your device code"></div>
+    <div class="row"><button class="s" id="copy">Copy link</button><button class="s" id="newcode">New code</button></div>
+  </section>
+</div>
 
-<section>
+<section class="card">
   <h2>Connected devices</h2>
-  <div id="peers"><p class="empty">No devices connected yet. Drop files on a device card once it appears here.</p></div>
+  <p class="sub" style="margin:0">Files from connected devices are received automatically.</p>
+  <div id="peers"></div>
 </section>
 
-<section>
+<section class="card">
   <h2>Transfers</h2>
-  <div id="txs"><p class="empty" id="notx">Sent and received files will show up here.</p></div>
+  <div id="txs"><div class="empty" id="notx"><em>📂</em>Sent and received files will show up here.</div></div>
 </section>
+<p class="foot">DShare · peer-to-peer over WebRTC</p>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -94,13 +117,14 @@ const peers = new Map(), rx = new Map(), tx = new Map();
 const fmt = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(1) + ' KB' : n < 1073741824 ? (n/1048576).toFixed(1) + ' MB' : (n/1073741824).toFixed(2) + ' GB';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const setStatus = t => $('#status').textContent = t;
+const setStatus = (t, on) => { $('#status').innerHTML = t; $('#pill').classList.toggle('on', !!on); };
+const icon = n => { n = n.toLowerCase(); return /\.(png|jpe?g|gif|webp|svg|heic)$/.test(n) ? '🖼️' : /\.(mp4|mov|mkv|webm)$/.test(n) ? '🎬' : /\.(mp3|wav|flac|m4a)$/.test(n) ? '🎵' : /\.(zip|rar|7z|tar|gz)$/.test(n) ? '🗜️' : /\.pdf$/.test(n) ? '📕' : '📄'; };
 
 function showCode(){
   $('#code').innerHTML = code.split('').map(c => '<span>' + c + '</span>').join('');
   const link = location.origin + location.pathname + '?join=' + code;
   $('#qr').innerHTML = '';
-  try { new QRCode($('#qr'), { text: link, width: 128, height: 128 }); } catch(e) {}
+  try { new QRCode($('#qr'), { text: link, width: 84, height: 84 }); } catch(e) {}
   return link;
 }
 
@@ -108,13 +132,13 @@ function start(){
   if (peer) peer.destroy();
   store.set('dshare-code', code);
   const link = showCode();
-  $('#copy').onclick = () => navigator.clipboard.writeText(link).then(() => setStatus('Link copied.'), () => setStatus(link));
+  $('#copy').onclick = () => navigator.clipboard.writeText(link).then(() => setStatus('Link copied', true), () => setStatus(esc(link)));
   peer = new Peer(PREFIX + code);
-  peer.on('open', () => setStatus('Ready. Waiting for another device to connect.'));
+  peer.on('open', () => setStatus('Ready · <b>' + code + '</b>', true));
   peer.on('connection', setup);
   peer.on('error', e => {
     if (e.type === 'unavailable-id') { code = genCode(); start(); }
-    else if (e.type === 'peer-unavailable') setStatus('No device found with that code. Check it and try again.');
+    else if (e.type === 'peer-unavailable') setStatus('No device with that code');
     else setStatus('Connection problem: ' + e.type);
   });
   peer.on('disconnected', () => { setStatus('Reconnecting…'); try { peer.reconnect(); } catch(e) {} });
@@ -122,7 +146,7 @@ function start(){
 
 function connectTo(c){
   c = c.trim().toUpperCase();
-  if (c.length !== 6 || c === code) return setStatus('Enter the 6-character code from the other device.');
+  if (c.length !== 6 || c === code) return setStatus('Enter the 6-character code');
   setStatus('Connecting to ' + c + '…');
   setup(peer.connect(PREFIX + c, { reliable: true, serialization: 'binary' }));
 }
@@ -131,23 +155,24 @@ function setup(conn){
   conn.on('open', () => {
     peers.set(conn.peer, { conn, name: conn.peer.replace(PREFIX, '') });
     conn.send({ t: 'hello', name: myName });
-    setStatus('Connected.'); renderPeers();
+    setStatus('Connected', true); renderPeers();
   });
   conn.on('data', d => onData(conn, d));
   conn.on('close', () => { peers.delete(conn.peer); renderPeers(); });
-  conn.on('error', () => setStatus('A connection failed.'));
+  conn.on('error', () => setStatus('A connection failed'));
 }
 
 function renderPeers(){
   const box = $('#peers');
-  if (!peers.size) { box.innerHTML = '<p class="empty">No devices connected yet. Drop files on a device card once it appears here.</p>'; return; }
   box.innerHTML = '';
+  if (!peers.size) { box.innerHTML = '<div class="empty"><em>📡</em>No devices connected yet.<br>Enter a code or scan a QR code to start.</div>'; return; }
   peers.forEach((p, id) => {
     const el = document.createElement('div');
     el.className = 'peer';
-    el.innerHTML = '<span class="dot"></span><b>' + esc(p.name) + '</b> <span class="meta">' + esc(id.replace(PREFIX,'')) + '</span><div class="row" style="margin-top:10px"><button class="p s">Choose files</button><span class="meta">or drop files here</span></div><input type="file" multiple hidden>';
+    el.innerHTML = '<div class="av">' + esc(p.name[0].toUpperCase()) + '</div><div class="t"><b>' + esc(p.name) + '</b><span class="meta">Tap or drop files to send</span></div><button class="p s">Send files</button><input type="file" multiple hidden>';
     const inp = el.querySelector('input');
-    el.querySelector('button').onclick = () => inp.click();
+    el.onclick = () => inp.click();
+    inp.onclick = e => e.stopPropagation();
     inp.onchange = () => { [...inp.files].forEach(f => sendFile(p.conn, p.name, f)); inp.value = ''; };
     el.ondragover = e => { e.preventDefault(); el.classList.add('drag'); };
     el.ondragleave = () => el.classList.remove('drag');
@@ -156,16 +181,16 @@ function renderPeers(){
   });
 }
 
-function row(id, title, meta){
+function row(title, meta){
   $('#notx')?.remove();
   const el = document.createElement('div');
   el.className = 'tx';
-  el.innerHTML = '<b>' + esc(title) + '</b><div class="bar"><i></i></div><div class="meta"></div><div class="act"></div>';
+  el.innerHTML = '<div class="ico">' + icon(title) + '</div><div class="t"><b>' + esc(title) + '</b><div class="bar"><i></i></div><div class="meta"></div></div><div class="act"></div>';
   $('#txs').prepend(el);
   const api = {
-    el, text: t => el.querySelector('.meta').textContent = t,
+    text: t => el.querySelector('.meta').textContent = t,
     pct: p => el.querySelector('i').style.width = Math.round(p * 100) + '%',
-    act: h => { const a = el.querySelector('.act'); a.innerHTML = ''; if (h) a.appendChild(h); }
+    done: node => { el.classList.add('done'); if (node) el.querySelector('.act').appendChild(node); }
   };
   api.text(meta);
   return api;
@@ -173,20 +198,18 @@ function row(id, title, meta){
 
 async function sendFile(conn, peerName, file){
   const id = crypto.randomUUID();
-  const ui = row(id, file.name, 'Waiting for ' + peerName + ' to accept · ' + fmt(file.size));
-  const reply = new Promise(res => tx.set(id, res));
+  const ui = row(file.name, 'Sending to ' + peerName + ' · ' + fmt(file.size));
   conn.send({ t: 'offer', id, name: file.name, size: file.size, mime: file.type });
-  if (!(await reply)) return ui.text('Declined by ' + peerName + '.');
   try {
     for (let off = 0; off < file.size; off += CHUNK) {
       const buf = await file.slice(off, off + CHUNK).arrayBuffer();
       while (conn.dataChannel && conn.dataChannel.bufferedAmount > 1048576) await sleep(15);
       conn.send({ t: 'chunk', id, d: buf });
       ui.pct(Math.min(1, (off + CHUNK) / file.size));
-      ui.text('Sending… ' + fmt(Math.min(off + CHUNK, file.size)) + ' of ' + fmt(file.size));
+      ui.text('Sending to ' + peerName + ' · ' + fmt(Math.min(off + CHUNK, file.size)) + ' of ' + fmt(file.size));
     }
     conn.send({ t: 'end', id });
-    ui.pct(1); ui.text('Sent to ' + peerName + ' · ' + fmt(file.size));
+    ui.done(); ui.text('Sent to ' + peerName + ' · ' + fmt(file.size));
   } catch (e) { ui.text('Sending failed. The device may have disconnected.'); }
 }
 
@@ -194,27 +217,20 @@ function onData(conn, m){
   const p = peers.get(conn.peer);
   if (m.t === 'hello') { if (p) { p.name = m.name; renderPeers(); } }
   else if (m.t === 'offer') {
-    const ui = row(m.id, m.name, (p ? p.name : 'A device') + ' wants to send you this file · ' + fmt(m.size));
-    const box = document.createElement('div');
-    box.className = 'offer row';
-    const yes = Object.assign(document.createElement('button'), { className: 'p s', textContent: 'Accept' });
-    const no = Object.assign(document.createElement('button'), { className: 's', textContent: 'Decline' });
-    yes.onclick = () => { rx.set(m.id, { chunks: [], got: 0, m, ui }); ui.act(null); ui.text('Receiving…'); conn.send({ t: 'accept', id: m.id, ok: true }); };
-    no.onclick = () => { ui.act(null); ui.text('You declined this file.'); conn.send({ t: 'accept', id: m.id, ok: false }); };
-    box.append(yes, no); ui.act(box);
+    const who = p ? p.name : 'a device';
+    rx.set(m.id, { chunks: [], got: 0, m, ui: row(m.name, 'Receiving from ' + who + ' · ' + fmt(m.size)), who });
   }
-  else if (m.t === 'accept') { const r = tx.get(m.id); if (r) { r(m.ok); tx.delete(m.id); } }
   else if (m.t === 'chunk') {
     const r = rx.get(m.id); if (!r) return;
     r.chunks.push(m.d); r.got += m.d.byteLength;
-    r.ui.pct(r.got / r.m.size); r.ui.text('Receiving… ' + fmt(r.got) + ' of ' + fmt(r.m.size));
+    r.ui.pct(r.got / r.m.size); r.ui.text('Receiving from ' + r.who + ' · ' + fmt(r.got) + ' of ' + fmt(r.m.size));
   }
   else if (m.t === 'end') {
     const r = rx.get(m.id); if (!r) return;
     rx.delete(m.id);
     const url = URL.createObjectURL(new Blob(r.chunks, { type: r.m.mime || 'application/octet-stream' }));
-    const a = Object.assign(document.createElement('a'), { href: url, download: r.m.name, textContent: 'Save ' + r.m.name });
-    r.ui.pct(1); r.ui.text('Received · ' + fmt(r.m.size)); r.ui.act(a);
+    const a = Object.assign(document.createElement('a'), { href: url, download: r.m.name, textContent: 'Save', className: 'save' });
+    r.ui.text('Received from ' + r.who + ' · ' + fmt(r.m.size)); r.ui.done(a);
     a.click();
   }
 }
@@ -223,7 +239,7 @@ $('#go').onclick = () => connectTo($('#join').value);
 $('#join').onkeydown = e => { if (e.key === 'Enter') connectTo(e.target.value); };
 $('#newcode').onclick = () => { code = genCode(); peers.forEach(p => p.conn.close()); start(); };
 
-start();
+start(); renderPeers();
 const j = new URLSearchParams(location.search).get('join');
 if (j) { $('#join').value = j.toUpperCase(); peer.on('open', () => connectTo(j)); history.replaceState(null, '', location.pathname); }
 </script>
