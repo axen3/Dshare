@@ -1,202 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DShare - File Transfer</title>
-    <!-- Import PeerJS Library -->
-    <script src="https://unpkg.com"></script>
-    <!-- Import QRCode.js Library -->
-    <script src="https://cloudflare.com"></script>
-    <style>
-        body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
-            max-width: 500px; 
-            margin: 40px auto; 
-            padding: 20px; 
-            background: #f8fafc; 
-            color: #0f172a; 
-        }
-        h2 { text-align: center; color: #2563eb; margin-bottom: 5px; }
-        .tagline { text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 25px; }
-        .card { background: white; padding: 22px; border-radius: 16px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        h3 { margin-top: 0; color: #1e293b; font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; }
-        input:focus { outline: 2px solid #2563eb; border-color: transparent; }
-        button { background: #2563eb; color: white; border: none; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #1d4ed8; }
-        button:disabled { background: #94a3b8; cursor: not-allowed; }
-        .status { font-weight: bold; color: #2563eb; font-family: monospace; font-size: 1.1rem; text-align: center; padding: 8px; background: #eff6ff; border-radius: 6px; word-break: break-all; }
-        #qrcode { display: flex; justify-content: center; margin: 15px 0; min-height: 128px; }
-        #log { font-size: 0.95rem; color: #334155; line-height: 1.5; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DShare – send files device to device</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#101828;--mute:#667085;--line:#d8dfe8;--acc:#4b3df2;--accink:#fff;--warn:#fff4d6;--ok:#12a36b;--bad:#d92d20}
+@media(prefers-color-scheme:dark){:root{--bg:#0c111b;--card:#151c2a;--ink:#eef2f8;--mute:#8d99ae;--line:#26314a;--acc:#8b80ff;--accink:#0c111b;--warn:#3a2f10;--ok:#3ddc97;--bad:#ff7a70}}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Space Grotesk",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:baseline;gap:12px;margin:8px 0 22px}
+h1{margin:0;font-size:34px;letter-spacing:-.04em}
+header p{margin:0;color:var(--mute)}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
+h2{margin:0 0 4px;font-size:18px}
+.sub{color:var(--mute);margin:0 0 14px;font-size:14px}
+.code{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.code span{width:52px;height:64px;display:grid;place-items:center;font-size:32px;font-weight:700;background:var(--ink);color:var(--bg);border-radius:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1;min-width:140px;font:inherit;font-size:20px;letter-spacing:.2em;text-transform:uppercase;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:transparent;color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button{font:inherit;font-weight:500;padding:10px 18px;border-radius:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+button.p{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+button.s{padding:6px 12px;font-size:14px}
+#qr{background:#fff;padding:8px;border-radius:10px;width:fit-content;margin-top:8px}
+#qr:empty{display:none}
+.peer{border:2px dashed var(--line);border-radius:14px;padding:14px;margin-top:10px;transition:.15s}
+.peer.drag{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.peer b{font-size:17px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok);margin-right:8px}
+.tx{border-top:1px solid var(--line);padding:12px 0}
+.tx:first-child{border-top:0}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--acc)}
+.meta{font-size:13px;color:var(--mute)}
+.offer{background:var(--warn);border-radius:12px;padding:10px 12px;margin-top:8px}
+.empty{color:var(--mute);font-size:14px;margin:6px 0 0}
+.st{font-size:13px;color:var(--mute);margin-top:8px}
+a{color:var(--acc)}
+</style>
 </head>
 <body>
+<main>
+<header><h1>DShare</h1><p>Send files straight between devices. Nothing is uploaded to a server.</p></header>
 
-    <h2>⚡ DShare</h2>
-    <p class="tagline">Direct Peer-to-Peer Local File Sharing</p>
-    
-    <!-- 1. DEVICE IDENTIFICATION & QR CODE -->
-    <div class="card">
-        <h3>This Device</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Your mobile device can scan this QR code to instantly paste your ID, or you can check the URL parameters if sharing a link.</p>
-        <div id="my-id" class="status">Initializing connection...</div>
-        <div id="qrcode"></div>
-    </div>
+<section>
+  <h2>This device: <span id="name">…</span></h2>
+  <p class="sub">Open DShare on the other device and enter this code, or scan the QR code.</p>
+  <div class="code" id="code" aria-label="Your device code"></div>
+  <div class="row"><button class="s" id="copy">Copy link</button><button class="s" id="newcode">New code</button></div>
+  <div id="qr"></div>
+  <div class="st" id="status">Connecting to the signaling server…</div>
+</section>
 
-    <!-- 2. SENDER FORM -->
-    <div class="card">
-        <h3>Send File</h3>
-        <input type="text" id="receiver-id" placeholder="Enter Target Device ID">
-        <input type="file" id="file-input">
-        <button id="send-btn" disabled>Send File</button>
-    </div>
+<section>
+  <h2>Connect to a device</h2>
+  <p class="sub">Type the 6-character code shown on the other device.</p>
+  <div class="row"><input type="text" id="join" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="Device code"><button class="p" id="go">Connect</button></div>
+</section>
 
-    <!-- 3. TRANSFERS LOG -->
-    <div class="card">
-        <h3>Activity Log</h3>
-        <div id="log">Ready. Connect devices to begin.</div>
-    </div>
+<section>
+  <h2>Connected devices</h2>
+  <div id="peers"><p class="empty">No devices connected yet. Drop files on a device card once it appears here.</p></div>
+</section>
 
-    <script>
-        const myIdDisplay = document.getElementById('my-id');
-        const receiverIdInput = document.getElementById('receiver-id');
-        const fileInput = document.getElementById('file-input');
-        const sendBtn = document.getElementById('send-btn');
-        const logBox = document.getElementById('log');
-        const qrContainer = document.getElementById('qrcode');
+<section>
+  <h2>Transfers</h2>
+  <div id="txs"><p class="empty" id="notx">Sent and received files will show up here.</p></div>
+</section>
+</main>
 
-        // Check if there is an ID passed directly in the URL string (?to=XXXXX)
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetFromUrl = urlParams.get('to');
-        if (targetFromUrl) {
-            receiverIdInput.value = targetFromUrl;
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', PREFIX = 'dshare-', CHUNK = 64 * 1024;
+const ADJ = ['Swift','Quiet','Bright','Brave','Calm','Lucky','Sunny','Witty'], ANI = ['Otter','Falcon','Panda','Lynx','Gecko','Heron','Koala','Fox'];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+const genCode = () => Array.from({length:6}, () => pick(ALPHA)).join('');
+const myName = store.get('dshare-name') || (pick(ADJ) + ' ' + pick(ANI));
+store.set('dshare-name', myName);
+$('#name').textContent = myName;
 
-        // Initialize PeerJS to connect to public signaling web clouds
-        const peer = new Peer();
+let code = store.get('dshare-code') || genCode(), peer;
+const peers = new Map(), rx = new Map(), tx = new Map();
 
-        // When connected successfully to signaling server
-        peer.on('open', (id) => {
-            myIdDisplay.textContent = id;
-            sendBtn.disabled = false;
+const fmt = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(1) + ' KB' : n < 1073741824 ? (n/1048576).toFixed(1) + ' MB' : (n/1073741824).toFixed(2) + ' GB';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setStatus = t => $('#status').textContent = t;
 
-            // Clear container and generate a QR containing the ID
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-                text: id,
-                width: 128,
-                height: 128,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        });
+function showCode(){
+  $('#code').innerHTML = code.split('').map(c => '<span>' + c + '</span>').join('');
+  const link = location.origin + location.pathname + '?join=' + code;
+  $('#qr').innerHTML = '';
+  try { new QRCode($('#qr'), { text: link, width: 128, height: 128 }); } catch(e) {}
+  return link;
+}
 
-        // ==========================================
-        // RECEIVER ROUTINES (Incoming connections)
-        // ==========================================
-        peer.on('connection', (conn) => {
-            logBox.innerHTML = `Connected to peer: <b>${conn.peer}</b><br>Awaiting file stream...`;
-            
-            let receivedChunks = [];
-            let fileInfo = null;
+function start(){
+  if (peer) peer.destroy();
+  store.set('dshare-code', code);
+  const link = showCode();
+  $('#copy').onclick = () => navigator.clipboard.writeText(link).then(() => setStatus('Link copied.'), () => setStatus(link));
+  peer = new Peer(PREFIX + code);
+  peer.on('open', () => setStatus('Ready. Waiting for another device to connect.'));
+  peer.on('connection', setup);
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id') { code = genCode(); start(); }
+    else if (e.type === 'peer-unavailable') setStatus('No device found with that code. Check it and try again.');
+    else setStatus('Connection problem: ' + e.type);
+  });
+  peer.on('disconnected', () => { setStatus('Reconnecting…'); try { peer.reconnect(); } catch(e) {} });
+}
 
-            conn.on('data', (data) => {
-                if (data.type === 'metadata') {
-                    fileInfo = data;
-                    receivedChunks = [];
-                    logBox.innerHTML = `Receiving: <b>${data.name}</b> (${(data.size/1024/1024).toFixed(2)} MB)...`;
-                } else if (data.type === 'chunk') {
-                    receivedChunks.push(data.payload);
-                    
-                    // Track download progress visually
-                    let percent = Math.round((receivedChunks.length / data.totalChunks) * 100);
-                    logBox.innerHTML = `Downloading: <b>${percent}%</b>`;
+function connectTo(c){
+  c = c.trim().toUpperCase();
+  if (c.length !== 6 || c === code) return setStatus('Enter the 6-character code from the other device.');
+  setStatus('Connecting to ' + c + '…');
+  setup(peer.connect(PREFIX + c, { reliable: true, serialization: 'binary' }));
+}
 
-                    if (receivedChunks.length === data.totalChunks) {
-                        const fileBlob = new Blob(receivedChunks);
-                        const downloadUrl = URL.createObjectURL(fileBlob);
-                        
-                        logBox.innerHTML = `
-                            <p style="color: #16a34a; font-weight: bold; margin-top: 0;">✓ File fully received!</p>
-                            <a href="${downloadUrl}" download="${fileInfo.name}" style="text-decoration: none;">
-                                <button style="background: #16a34a;">Download ${fileInfo.name}</button>
-                            </a>
-                        `;
-                    }
-                }
-            });
-        });
+function setup(conn){
+  conn.on('open', () => {
+    peers.set(conn.peer, { conn, name: conn.peer.replace(PREFIX, '') });
+    conn.send({ t: 'hello', name: myName });
+    setStatus('Connected.'); renderPeers();
+  });
+  conn.on('data', d => onData(conn, d));
+  conn.on('close', () => { peers.delete(conn.peer); renderPeers(); });
+  conn.on('error', () => setStatus('A connection failed.'));
+}
 
-        // ==========================================
-        // SENDER ROUTINES (Outgoing connections)
-        // ==========================================
-        sendBtn.addEventListener('click', () => {
-            const targetId = receiverIdInput.value.trim();
-            const file = fileInput.files[0];
+function renderPeers(){
+  const box = $('#peers');
+  if (!peers.size) { box.innerHTML = '<p class="empty">No devices connected yet. Drop files on a device card once it appears here.</p>'; return; }
+  box.innerHTML = '';
+  peers.forEach((p, id) => {
+    const el = document.createElement('div');
+    el.className = 'peer';
+    el.innerHTML = '<span class="dot"></span><b>' + esc(p.name) + '</b> <span class="meta">' + esc(id.replace(PREFIX,'')) + '</span><div class="row" style="margin-top:10px"><button class="p s">Choose files</button><span class="meta">or drop files here</span></div><input type="file" multiple hidden>';
+    const inp = el.querySelector('input');
+    el.querySelector('button').onclick = () => inp.click();
+    inp.onchange = () => { [...inp.files].forEach(f => sendFile(p.conn, p.name, f)); inp.value = ''; };
+    el.ondragover = e => { e.preventDefault(); el.classList.add('drag'); };
+    el.ondragleave = () => el.classList.remove('drag');
+    el.ondrop = e => { e.preventDefault(); el.classList.remove('drag'); [...e.dataTransfer.files].forEach(f => sendFile(p.conn, p.name, f)); };
+    box.appendChild(el);
+  });
+}
 
-            if (!targetId || !file) {
-                alert("Please type a valid Receiver ID and select a file first.");
-                return;
-            }
+function row(id, title, meta){
+  $('#notx')?.remove();
+  const el = document.createElement('div');
+  el.className = 'tx';
+  el.innerHTML = '<b>' + esc(title) + '</b><div class="bar"><i></i></div><div class="meta"></div><div class="act"></div>';
+  $('#txs').prepend(el);
+  const api = {
+    el, text: t => el.querySelector('.meta').textContent = t,
+    pct: p => el.querySelector('i').style.width = Math.round(p * 100) + '%',
+    act: h => { const a = el.querySelector('.act'); a.innerHTML = ''; if (h) a.appendChild(h); }
+  };
+  api.text(meta);
+  return api;
+}
 
-            logBox.innerHTML = `Attempting handshake with <b>${targetId}</b>...`;
-            
-            const conn = peer.connect(targetId);
+async function sendFile(conn, peerName, file){
+  const id = crypto.randomUUID();
+  const ui = row(id, file.name, 'Waiting for ' + peerName + ' to accept · ' + fmt(file.size));
+  const reply = new Promise(res => tx.set(id, res));
+  conn.send({ t: 'offer', id, name: file.name, size: file.size, mime: file.type });
+  if (!(await reply)) return ui.text('Declined by ' + peerName + '.');
+  try {
+    for (let off = 0; off < file.size; off += CHUNK) {
+      const buf = await file.slice(off, off + CHUNK).arrayBuffer();
+      while (conn.dataChannel && conn.dataChannel.bufferedAmount > 1048576) await sleep(15);
+      conn.send({ t: 'chunk', id, d: buf });
+      ui.pct(Math.min(1, (off + CHUNK) / file.size));
+      ui.text('Sending… ' + fmt(Math.min(off + CHUNK, file.size)) + ' of ' + fmt(file.size));
+    }
+    conn.send({ t: 'end', id });
+    ui.pct(1); ui.text('Sent to ' + peerName + ' · ' + fmt(file.size));
+  } catch (e) { ui.text('Sending failed. The device may have disconnected.'); }
+}
 
-            conn.on('open', () => {
-                logBox.innerHTML = `Handshake verified. Slicing file: <b>${file.name}</b>`;
-                
-                const chunkSize = 64 * 1024; // Smooth 64KB WebRTC data chunks
-                const totalChunks = Math.ceil(file.size / chunkSize);
-                
-                // Dispatch metadata envelope first
-                conn.send({
-                    type: 'metadata',
-                    name: file.name,
-                    size: file.size
-                });
+function onData(conn, m){
+  const p = peers.get(conn.peer);
+  if (m.t === 'hello') { if (p) { p.name = m.name; renderPeers(); } }
+  else if (m.t === 'offer') {
+    const ui = row(m.id, m.name, (p ? p.name : 'A device') + ' wants to send you this file · ' + fmt(m.size));
+    const box = document.createElement('div');
+    box.className = 'offer row';
+    const yes = Object.assign(document.createElement('button'), { className: 'p s', textContent: 'Accept' });
+    const no = Object.assign(document.createElement('button'), { className: 's', textContent: 'Decline' });
+    yes.onclick = () => { rx.set(m.id, { chunks: [], got: 0, m, ui }); ui.act(null); ui.text('Receiving…'); conn.send({ t: 'accept', id: m.id, ok: true }); };
+    no.onclick = () => { ui.act(null); ui.text('You declined this file.'); conn.send({ t: 'accept', id: m.id, ok: false }); };
+    box.append(yes, no); ui.act(box);
+  }
+  else if (m.t === 'accept') { const r = tx.get(m.id); if (r) { r(m.ok); tx.delete(m.id); } }
+  else if (m.t === 'chunk') {
+    const r = rx.get(m.id); if (!r) return;
+    r.chunks.push(m.d); r.got += m.d.byteLength;
+    r.ui.pct(r.got / r.m.size); r.ui.text('Receiving… ' + fmt(r.got) + ' of ' + fmt(r.m.size));
+  }
+  else if (m.t === 'end') {
+    const r = rx.get(m.id); if (!r) return;
+    rx.delete(m.id);
+    const url = URL.createObjectURL(new Blob(r.chunks, { type: r.m.mime || 'application/octet-stream' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: r.m.name, textContent: 'Save ' + r.m.name });
+    r.ui.pct(1); r.ui.text('Received · ' + fmt(r.m.size)); r.ui.act(a);
+    a.click();
+  }
+}
 
-                let currentChunk = 0;
+$('#go').onclick = () => connectTo($('#join').value);
+$('#join').onkeydown = e => { if (e.key === 'Enter') connectTo(e.target.value); };
+$('#newcode').onclick = () => { code = genCode(); peers.forEach(p => p.conn.close()); start(); };
 
-                function sendNextChunk() {
-                    const start = currentChunk * chunkSize;
-                    const end = Math.min(start + chunkSize, file.size);
-                    const blobSlice = file.slice(start, end);
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        conn.send({
-                            type: 'chunk',
-                            payload: e.target.result,
-                            currentChunk: currentChunk,
-                            totalChunks: totalChunks
-                        });
-
-                        currentChunk++;
-                        
-                        if (currentChunk < totalChunks) {
-                            // Monitor progress percentages
-                            let progress = Math.round((currentChunk / totalChunks) * 100);
-                            logBox.innerHTML = `Uploading stream: <b>${progress}%</b>`;
-                            
-                            // Small micro-delay prevents network buffer crashes
-                            setTimeout(sendNextChunk, 1); 
-                        } else {
-                            logBox.innerHTML = `<span style="color: #16a34a; font-weight: bold;">✓ File dispatched successfully!</span>`;
-                        }
-                    };
-                    reader.readAsArrayBuffer(blobSlice);
-                }
-
-                sendNextChunk();
-            });
-
-            conn.on('error', (err) => {
-                logBox.innerHTML = `<span style="color: #dc2626;">Connection error. Verify the ID is correct.</span>`;
-            });
-        });
-    </script>
+start();
+const j = new URLSearchParams(location.search).get('join');
+if (j) { $('#join').value = j.toUpperCase(); peer.on('open', () => connectTo(j)); history.replaceState(null, '', location.pathname); }
+</script>
 </body>
 </html>
